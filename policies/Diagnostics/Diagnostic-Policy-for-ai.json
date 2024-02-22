@@ -1,0 +1,250 @@
+{
+    "name": "ai-policy-eventhub",
+    "type": "Microsoft.Authorization/policyDefinitions",
+    "properties": {
+        "displayName": "ai-policy-eventhub",
+        "description": "Policy for ai.",
+        "mode": "All",
+        "metadata": {
+            "version": "1.0.0",
+            "category": "Ai"
+        },
+        "parameters": {
+            "resourceLocation": {
+                "type": "String",
+                "metadata": {
+                    "displayName": "Resource Location",
+                    "description": "Resource Location must be the same as the Event Hub",
+                    "strongType": "location"
+                }
+            },
+            "eventHubAuthorizationRuleId": {
+                "type": "String",
+                "metadata": {
+                    "displayName": "Event Hub Authorization Rule Id",
+                    "description": "The Event Hub authorization rule Id for Azure Diagnostics. The authorization rule needs to be at Event Hub namespace level. e.g. /subscriptions/{subscription Id}/resourceGroups/{resource group}/providers/Microsoft.EventHub/namespaces/{Event Hub namespace}/authorizationrules/{authorization rule}",
+                    "assignPermissions": true
+                }
+            },
+            "eventHubName": {
+                "type": "String",
+                "metadata": {
+                    "displayName": "EventHub name",
+                    "description": "The EventHub name to stream activity logs to",
+                    "assignPermissions": true
+                }
+            },
+            "diagnosticsSettingNameToUse": {
+                "type": "String",
+                "metadata": {
+                    "displayName": "Diagnostics Setting Name To Use",
+                    "description": "The name of the diagnostics setting."
+                },
+                "defaultValue": "setByPolicyEvtHub"
+            }
+        },
+        "policyRule": {
+            "if": {
+                "allOf": [
+                    {
+                        "field": "type",
+                        "equals": "Microsoft.Insights/Components"
+                    },
+                    {
+                        "field": "location",
+                        "equals": "[parameters('resourceLocation')]"
+                    }
+                ]
+            },
+            "then": {
+                "effect": "deployIfNotExists",
+                "details": {
+                    "type": "Microsoft.Insights/diagnosticSettings",
+                    "roleDefinitionIds": [
+                        "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"
+                    ],
+                    "existenceCondition": {
+                        "allOf": [
+                            {
+                                "field": "Microsoft.Insights/diagnosticSettings/logs.enabled",
+                                "equals": "True"
+                            },
+                            {
+                                "field": "Microsoft.Insights/diagnosticSettings/metrics.enabled",
+                                "equals": "True"
+                            },
+                            {
+                                "field": "Microsoft.Insights/diagnosticSettings/eventHubAuthorizationRuleId",
+                                "matchInsensitively": "[parameters('eventHubAuthorizationRuleId')]"
+                            },
+                            {
+                                "field": "Microsoft.Insights/diagnosticSettings/eventHubName",
+                                "matchInsensitively": "[parameters('eventHubName')]"
+                            }
+                        ]
+                    },
+                    "deployment": {
+                        "properties": {
+                            "mode": "incremental",
+                            "template": {
+                                "$schema": "http://schema.management.azure.com/schemas/2019-08-01/deploymentTemplate.json#",
+                                "contentVersion": "1.0.0.0",
+                                "parameters": {
+                                    "diagnosticsSettingNameToUse": {
+                                        "type": "string"
+                                    },
+                                    "resourceName": {
+                                        "type": "string"
+                                    },
+                                    "eventHubName": {
+                                        "type": "string"
+                                    },
+                                    "eventHubAuthorizationRuleId": {
+                                        "type": "string"
+                                    },
+                                    "location": {
+                                        "type": "string"
+                                    }
+                                },
+                                "variables": {},
+                                "resources": [
+                                    {
+                                        "type": "Microsoft.Insights/Components/providers/diagnosticSettings",
+                                        "apiVersion": "2021-05-01-preview",
+                                        "name": "[concat(parameters('resourceName'), '/', 'Microsoft.Insights/', parameters('diagnosticsSettingNameToUse'))]",
+                                        "location": "[parameters('location')]",
+                                        "dependsOn": [],
+                                        "properties": {
+                                            "eventHubName": "[parameters('eventHubName')]",
+                                            "eventHubAuthorizationRuleId": "[parameters('eventHubAuthorizationRuleId')]",
+                                            "metrics": [
+                                                {
+                                                    "category": "Availability",
+                                                    "timeGrain": null,
+                                                    "enabled": false,
+                                                    "retentionPolicy": {
+                                                        "enabled": false,
+                                                        "days": 0
+                                                    }
+                                                },
+                                                {
+                                                    "category": "Browser",
+                                                    "timeGrain": null,
+                                                    "enabled": true,
+                                                    "retentionPolicy": {
+                                                        "enabled": false,
+                                                        "days": 0
+                                                    }
+                                                },
+                                                {
+                                                    "category": "Server",
+                                                    "timeGrain": null,
+                                                    "enabled": true,
+                                                    "retentionPolicy": {
+                                                        "enabled": false,
+                                                        "days": 0
+                                                    }
+                                                },
+                                                {
+                                                    "category": "Failures",
+                                                    "timeGrain": null,
+                                                    "enabled": true,
+                                                    "retentionPolicy": {
+                                                        "enabled": false,
+                                                        "days": 0
+                                                    }
+                                                },
+                                                {
+                                                    "category": "Usage",
+                                                    "timeGrain": null,
+                                                    "enabled": true,
+                                                    "retentionPolicy": {
+                                                        "enabled": false,
+                                                        "days": 0
+                                                    }
+                                                },
+                                                {
+                                                    "category": "Performance counters",
+                                                    "timeGrain": null,
+                                                    "enabled": true,
+                                                    "retentionPolicy": {
+                                                        "enabled": false,
+                                                        "days": 0
+                                                    }
+                                                }
+                                            ],
+                                            "logs": [
+                                                {
+                                                    "category": "AppAvailabilityResults",
+                                                    "enabled": true
+                                                },
+                                                {
+                                                    "category": "AppBrowserTimings",
+                                                    "enabled": true
+                                                },
+                                                {
+                                                    "category": "AppEvents",
+                                                    "enabled": true
+                                                },
+                                                {
+                                                    "category": "AppMetrics",
+                                                    "enabled": true
+                                                },
+                                                {
+                                                    "category": "AppDependencies",
+                                                    "enabled": true
+                                                },
+                                                {
+                                                    "category": "AppExceptions",
+                                                    "enabled": true
+                                                },
+                                                {
+                                                    "category": "AppPageViews",
+                                                    "enabled": true
+                                                },
+                                                {
+                                                    "category": "AppPerformanceCounters",
+                                                    "enabled": true
+                                                },
+                                                {
+                                                    "category": "AppRequests",
+                                                    "enabled": true
+                                                },
+                                                {
+                                                    "category": "AppSystemEvents",
+                                                    "enabled": true
+                                                },
+                                                {
+                                                    "category": "AppTraces",
+                                                    "enabled": true
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "outputs": {}
+                            },
+                            "parameters": {
+                                "diagnosticsSettingNameToUse": {
+                                    "value": "[parameters('diagnosticsSettingNameToUse')]"
+                                },
+                                "eventHubName": {
+                                    "value": "[parameters('eventHubName')]"
+                                },
+                                "eventHubAuthorizationRuleId": {
+                                    "value": "[parameters('eventHubAuthorizationRuleId')]"
+                                },
+                                "location": {
+                                    "value": "[field('location')]"
+                                },
+                                "resourceName": {
+                                    "value": "[field('name')]"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
