@@ -1,4 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
+
 # POLICY INITIATIVE MODULE
 
 Dynamically creates a policy set based on multiple custom or built-in policy definitions
@@ -108,45 +109,44 @@ module guest_config_prereqs_initiative {
 
 ## Requirements
 
-| Name | Version |
-|------|---------|
-| terraform | >= 1.4 |
-| azurerm | >=3.23.0 |
-
-
+| Name      | Version  |
+| --------- | -------- |
+| terraform | >= 1.4   |
+| azurerm   | >=3.23.0 |
 
 ## Resources
 
-| Name | Type |
-|------|------|
+| Name                                                                                                                                       | Type     |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
 | [azurerm_policy_set_definition.set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/policy_set_definition) | resource |
-| [terraform_data.set_replace](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
+| [terraform_data.set_replace](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data)                       | resource |
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| duplicate_members | Does the Initiative contain duplicate member definitions? Defaults to false | `bool` | `false` | no |
-| initiative_category | The category of the initiative | `string` | `"General"` | no |
-| initiative_description | Policy initiative description | `string` | `""` | no |
-| initiative_display_name | Policy initiative display name | `string` | n/a | yes |
-| initiative_metadata | The metadata for the policy initiative. This is a JSON object representing additional metadata that should be stored with the policy initiative. Omitting this will default to merge var.initiative_category and var.initiative_version | `any` | `null` | no |
-| initiative_name | Policy initiative name. Changing this forces a new resource to be created | `string` | n/a | yes |
-| initiative_version | The version for this initiative, defaults to 1.0.0 | `string` | `"1.0.0"` | no |
-| management_group_id | The management group scope at which the initiative will be defined. Defaults to current Subscription if omitted. Changing this forces a new resource to be created. Note: if you are using azurerm_management_group to assign a value to management_group_id, be sure to use name or group_id attribute, but not id. | `string` | `null` | no |
-| member_definitions | Policy Definition resource nodes that will be members of this initiative | `any` | n/a | yes |
-| merge_effects | Should the module merge all member definition effects? Defaults to true | `bool` | `true` | no |
-| merge_parameters | Should the module merge all member definition parameters? Defaults to true | `bool` | `true` | no |
+| Name                    | Description                                                                                                                                                                                                                                                                                                          | Type     | Default     | Required |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- | :------: |
+| duplicate_members       | Does the Initiative contain duplicate member definitions? Defaults to false                                                                                                                                                                                                                                          | `bool`   | `false`     |    no    |
+| initiative_category     | The category of the initiative                                                                                                                                                                                                                                                                                       | `string` | `"General"` |    no    |
+| initiative_description  | Policy initiative description                                                                                                                                                                                                                                                                                        | `string` | `""`        |    no    |
+| initiative_display_name | Policy initiative display name                                                                                                                                                                                                                                                                                       | `string` | n/a         |   yes    |
+| initiative_metadata     | The metadata for the policy initiative. This is a JSON object representing additional metadata that should be stored with the policy initiative. Omitting this will default to merge var.initiative_category and var.initiative_version                                                                              | `any`    | `null`      |    no    |
+| initiative_name         | Policy initiative name. Changing this forces a new resource to be created                                                                                                                                                                                                                                            | `string` | n/a         |   yes    |
+| initiative_version      | The version for this initiative, defaults to 1.0.0                                                                                                                                                                                                                                                                   | `string` | `"1.0.0"`   |    no    |
+| management_group_id     | The management group scope at which the initiative will be defined. Defaults to current Subscription if omitted. Changing this forces a new resource to be created. Note: if you are using azurerm_management_group to assign a value to management_group_id, be sure to use name or group_id attribute, but not id. | `string` | `null`      |    no    |
+| member_definitions      | Policy Definition resource nodes that will be members of this initiative                                                                                                                                                                                                                                             | `any`    | n/a         |   yes    |
+| merge_effects           | Should the module merge all member definition effects? Defaults to true                                                                                                                                                                                                                                              | `bool`   | `true`      |    no    |
+| merge_parameters        | Should the module merge all member definition parameters? Defaults to true                                                                                                                                                                                                                                           | `bool`   | `true`      |    no    |
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| id | The Id of the Policy Set Definition |
-| initiative | The combined Policy Initiative resource node |
-| metadata | The metadata of the Policy Set Definition |
-| name | The name of the Policy Set Definition |
-| non_compliance_messages | Generated Key/Value map of non-compliance messages |
-| parameters | The combined parameters of the Policy Set Definition |
-| role_definition_ids | Role definition IDs for remediation |
+| Name                    | Description                                          |
+| ----------------------- | ---------------------------------------------------- |
+| id                      | The Id of the Policy Set Definition                  |
+| initiative              | The combined Policy Initiative resource node         |
+| metadata                | The metadata of the Policy Set Definition            |
+| name                    | The name of the Policy Set Definition                |
+| non_compliance_messages | Generated Key/Value map of non-compliance messages   |
+| parameters              | The combined parameters of the Policy Set Definition |
+| role_definition_ids     | Role definition IDs for remediation                  |
+
 <!-- END_TF_DOCS -->
