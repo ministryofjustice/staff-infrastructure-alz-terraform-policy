@@ -37,35 +37,12 @@
 
 ```bash
 📦examples
-  ├──📜assignments_mg.tf
-  ├──📜backend.tf
-  ├──📜built-in.tf
-  ├──📜data.tf
-  ├──📜definitions.tf
-  ├──📜exemptions.tf
-  ├──📜initiatives.tf
-  ├──📜variables.tf
 📦modules
   └──📂def_assignment
-      ├──📜main.tf
-      ├──📜outputs.tf
-      └──📜variables.tf
   └──📂definition
-      ├──📜main.tf
-      ├──📜outputs.tf
-      └──📜variables.tf
   └──📂exemption
-      ├──📜main.tf
-      ├──📜outputs.tf
-      └──📜variables.tf
   └──📂initiative
-      ├──📜main.tf
-      ├──📜outputs.tf
-      └──📜variables.tf
   └──📂set_assignment
-      ├──📜main.tf
-      ├──📜outputs.tf
-      └──📜variables.tf
 📦policies
   └──📂policy_category (e.g. General, should correspond to [var.policy_category])
       └──📜policy_name.json (e.g. whitelist_regions, should correspond to [var.policy_name])
@@ -93,7 +70,6 @@ module whitelist_regions {
 ## [Policy Initiative (Set Definitions) Module](modules/initiative)
 
 Dynamically create a policy set based on multiple custom or built-in policy definition references to simplify assignments.
-
 
 ```hcl
 module platform_baseline_initiative {
@@ -162,10 +138,7 @@ module org_mg_platform_diagnostics_initiative {
     data.azurerm_management_group.team_a.id
   ]
 
-  non_compliance_messages = {
-    null                                      = "The Default non-compliance message for all member definitions"
-    DeployApplicationGatewayDiagnosticSetting = "The non-compliance message for the deploy_application_gateway_diagnostic_setting definition"
-  }
+  non_compliance_messages = module.platform_diagnostics_initiative.non_compliance_messages
 }
 ```
 
@@ -224,10 +197,10 @@ To trigger an on-demand [compliance scan](https://learn.microsoft.com/en-us/azur
 
 ### 🎯Definition and Assignment Scopes
 
-  - Should be Defined as **high up** in the hierarchy as possible.
-  - Should be Assigned as **low down** in the hierarchy as possible.
-  - Multiple scopes can be exempt from policy inheritance by specifying `assignment_not_scopes` or using the [exemption module](modules/exemption).
-  - Policy **overrides RBAC** so even resource owners and contributors fall under compliance enforcements assigned at a higher scope (unless the policy is assigned at the ownership scope).
+- Should be Defined as **high up** in the hierarchy as possible.
+- Should be Assigned as **low down** in the hierarchy as possible.
+- Multiple scopes can be exempt from policy inheritance by specifying `assignment_not_scopes` or using the [exemption module](modules/exemption).
+- Policy **overrides RBAC** so even resource owners and contributors fall under compliance enforcements assigned at a higher scope (unless the policy is assigned at the ownership scope).
 
 ![Policy Definition and Assignment Scopes](img/scopes.svg)
 
@@ -253,9 +226,9 @@ To trigger an on-demand [compliance scan](https://learn.microsoft.com/en-us/azur
 - [Azure Citadel: Creating Custom Policies](https://www.azurecitadel.com/policy/custom/)
 - [Terraform Provider: azurerm_policy_definition](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/policy_definition)
 - [Terraform Provider: azurerm_policy_set_definition](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/policy_set_definition)
-- [Terraform Provider: multiple assignment resources: azurerm_*_policy_assignment](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_group_policy_assignment)
-- [Terraform Provider: multiple remediation resources: azurerm_*_policy_remediation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_group_policy_remediation)
-- [Terraform Provider: multiple exemption resources: azurerm_*_policy_exemption](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_group_policy_exemption)
+- [Terraform Provider: multiple assignment resources: azurerm\_\*\_policy_assignment](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_group_policy_assignment)
+- [Terraform Provider: multiple remediation resources: azurerm\_\*\_policy_remediation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_group_policy_remediation)
+- [Terraform Provider: multiple exemption resources: azurerm\_\*\_policy_exemption](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_group_policy_exemption)
 
 ## Limitations
 
@@ -265,7 +238,7 @@ To trigger an on-demand [compliance scan](https://learn.microsoft.com/en-us/azur
 - There's a [maximum count](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#azure-policy-limits) for each object type for Azure Policy. For definitions, an entry of Scope means the management group or subscription. For assignments and exemptions, an entry of Scope means the management group, subscription, resource group, or individual resource:
 
 | Where                                                     | What                             | Maximum count |
-|-----------------------------------------------------------|----------------------------------|---------------|
+| --------------------------------------------------------- | -------------------------------- | ------------- |
 | Scope                                                     | Policy definitions               | 500           |
 | Scope                                                     | Initiative definitions           | 200           |
 | Tenant                                                    | Initiative definitions           | 2,500         |
@@ -280,4 +253,3 @@ To trigger an on-demand [compliance scan](https://learn.microsoft.com/en-us/azur
 | Policy definition, initiative, or assignment request body | Bytes                            | 1,048,576     |
 
 Policy rules have additional limits to the number of conditions and their complexity. See [Policy rule limits](https://github.com/MicrosoftDocs/azure-docs/blob/main/articles/governance/policy/concepts/definition-structure.md#policy-rule-limits) for more details.
-
