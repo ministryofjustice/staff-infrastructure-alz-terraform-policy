@@ -4,9 +4,7 @@ Dynamically creates a policy set based on multiple custom or built-in policy def
 
 > ⚠️ **Warning:** To simplify assignments, if any `member_definitions` contain the same parameter names they will be [merged](https://www.terraform.io/language/functions/merge) unless you specify `merge_effects = false` or `merge_parameters = false` as described in the third example below. When `false` parameters will be suffixed with their respective reference Ids e.g. `"effect_AutoEnrollSubscriptions"`.
 
-
 ## Examples
-
 
 ### Create an Initiative with duplicate member definitions
 
@@ -16,7 +14,6 @@ Please see [duplicate_members.tf](../../examples/duplicate_members.tf) as en exa
 
 > 💡 **Note:** you must set `duplicate_members=true` and `merge_parameters=false` when building initiatives with duplicate members.</br>
 > 💡 **Note:** Be cautious when changing the position of `member_definitions` as these reflect the index numbers used in `assignment_parameters`.
-
 
 ### Create an Initiative with custom Policy definitions
 
