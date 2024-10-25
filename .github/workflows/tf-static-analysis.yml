@@ -1,0 +1,58 @@
+name: TF Static Analysis
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on pull request events but only for the main branch
+  pull_request:
+    branches: [ main ]
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        type: choice
+        description: Type of Terraform static analysis to run
+        required: true
+        default: changed
+        options:
+          - full
+          - changed
+          - single
+
+permissions:
+  contents: read
+
+jobs:
+  terraform-static-analysis:
+    permissions:
+      pull-requests: write
+    name: Terraform Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      
+    # There doesn't seem to be a way to default the input of "scan_type" in the event this workflow runs automatically...
+    # Which unfortunately leads to this...
+    - name: Set default for input
+      run: |
+        workflow_input_scan_type=${{ inputs.scan_type }}
+        
+        # if the input is empty (i.e. it wasn't run manually from the workflow_dispatch) then set the value to "changed"
+        scan_type_default=${workflow_input_scan_type:-"changed"}
+
+        # set env var so we can use it later
+        echo "scan=$scan_type_default" >> $GITHUB_ENV
+
+    - name: Checkout
+      uses: actions/checkout@v4.2.2
+      with:
+        fetch-depth: 0
+
+    - name: Run Analysis
+      uses: ministryofjustice/github-actions/terraform-static-analysis@v18.4.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tflint_config: tflint.azure.hcl
+        comment_on_pr: true
+        scan_type: ${{ env.scan }}
+        tflint_exclude: terraform_unused_declarations
