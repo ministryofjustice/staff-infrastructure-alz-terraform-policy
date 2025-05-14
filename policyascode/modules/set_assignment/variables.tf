@@ -9,7 +9,7 @@ variable "assignment_scope" {
 }
 
 variable "assignment_not_scopes" {
-  type        = list(any)
+  type        = list(string)
   description = "A list of the Policy Assignment's excluded scopes. Must be full resource IDs"
   default     = []
 }
@@ -34,7 +34,7 @@ variable "assignment_description" {
 
 variable "assignment_effect" {
   type        = string
-  description = "The effect of the policy. Changing this forces a new resource to be created"
+  description = "The effect of the set assignment. Useful when the initiative has multiple effects of the same type and 'merge_effects=true'. Omit this to use each definitions default effect or populate individually at 'assignment_parameters'"
   default     = null
 }
 
@@ -81,7 +81,7 @@ variable "resource_selectors" {
 }
 
 variable "identity_ids" {
-  type        = list(any)
+  type        = list(string)
   description = "Optional list of User Managed Identity IDs which should be assigned to the Policy Initiative"
   default     = null
 }
@@ -99,7 +99,7 @@ variable "remediation_scope" {
 }
 
 variable "location_filters" {
-  type        = list(any)
+  type        = list(string)
   description = "Optional list of the resource locations that will be remediated"
   default     = []
 }
@@ -120,6 +120,12 @@ variable "resource_count" {
   type        = number
   description = "(Optional) Determines the max number of resources that can be remediated by the remediation job. If not provided, the default resource count is used."
   default     = null
+}
+
+variable "aad_group_remediation_object_ids" {
+  type        = list(string)
+  description = "List of Azure AD Group Object Ids for the System Assigned Identity to be a member of. Omit this to use role_assignments"
+  default     = []
 }
 
 variable "role_definition_ids" {
@@ -156,8 +162,8 @@ locals {
 
   # convert assignment parameters to the required assignment structure
   parameter_values = var.assignment_parameters != null ? {
-    for key, value in var.assignment_parameters :
-    key => merge({ value = value })
+    for k, v in var.assignment_parameters :
+    k => merge({ value = v })
   } : null
 
   # merge effect and parameter_values if specified, will use definition default effects if omitted
@@ -167,37 +173,37 @@ locals {
   identity_type = length(try(coalescelist(var.role_definition_ids, try(var.initiative.role_definition_ids, [])), [])) > 0 ? var.identity_ids != null ? { type = "UserAssigned" } : { type = "SystemAssigned" } : {}
 
   # try to use policy definition roles if explicit roles are omitted
-  role_definition_ids = var.skip_role_assignment == false && try(values(local.identity_type)[0], "") == "SystemAssigned" ? try(coalescelist(var.role_definition_ids, try(var.initiative.role_definition_ids, [])), []) : []
+  role_definition_ids = var.skip_role_assignment == false && length(var.aad_group_remediation_object_ids) == 0 && try(values(local.identity_type)[0], "") == "SystemAssigned" ? try(coalescelist(var.role_definition_ids, try(var.initiative.role_definition_ids, [])), []) : []
 
   # assignment location is required when identity is specified
   assignment_location = length(local.identity_type) > 0 ? var.assignment_location : null
 
   # evaluate policy assignment scope from resource identifier
-  assignment_scope = try({
+  assignment_scope = {
     mg       = length(regexall("(\\/managementGroups\\/)", var.assignment_scope)) > 0 ? 1 : 0,
     sub      = length(split("/", var.assignment_scope)) == 3 ? 1 : 0,
     rg       = length(regexall("(\\/managementGroups\\/)", var.assignment_scope)) < 1 ? length(split("/", var.assignment_scope)) == 5 ? 1 : 0 : 0,
     resource = length(split("/", var.assignment_scope)) >= 6 ? 1 : 0,
-  })
+  }
 
   # evaluate remediation scope from resource identifier
   resource_discovery_mode = var.re_evaluate_compliance == true ? "ReEvaluateCompliance" : "ExistingNonCompliant"
-  remediation_scope       = try(coalesce(var.remediation_scope, var.assignment_scope), "")
-  remediate = try({
+  remediation_scope       = coalesce(var.remediation_scope, var.assignment_scope)
+  remediate = {
     mg       = length(regexall("(\\/managementGroups\\/)", local.remediation_scope)) > 0 ? 1 : 0,
     sub      = length(split("/", local.remediation_scope)) == 3 ? 1 : 0,
     rg       = length(regexall("(\\/managementGroups\\/)", local.remediation_scope)) < 1 ? length(split("/", local.remediation_scope)) == 5 ? 1 : 0 : 0,
     resource = length(split("/", local.remediation_scope)) >= 6 ? 1 : 0,
-  })
+  }
 
   # retrieve definition references & create a remediation task for policies with DeployIfNotExists and Modify effects
-  definitions = var.assignment_enforcement_mode == true && var.skip_remediation == false && length(local.identity_type) > 0 ? try(var.initiative.policy_definition_reference, []) : []
-  definition_reference = try({
+  definitions = var.assignment_enforcement_mode == true && var.skip_remediation == false && length(local.identity_type) > 0 ? (var.initiative.policy_definition_reference != [] && var.initiative.policy_definition_reference != null ? var.initiative.policy_definition_reference : []) : []
+  definition_reference = {
     mg       = local.remediate.mg > 0 ? local.definitions : []
     sub      = local.remediate.sub > 0 ? local.definitions : []
     rg       = local.remediate.rg > 0 ? local.definitions : []
     resource = local.remediate.resource > 0 ? local.definitions : []
-  })
+  }
 
   # evaluate outputs
   assignment = try(

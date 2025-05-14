@@ -1,7 +1,7 @@
 
 # Custom Policy Definition Library
-Compile time: 02/15/2024 11:33:43 UTC
-Example custom definitions located in the local library
+
+Example custom definitions - Compile time: 03/07/2025 17:11:27
 
 ## Categories
 - [Automation](#Automation)

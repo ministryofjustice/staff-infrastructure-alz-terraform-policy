@@ -1,9 +1,20 @@
 <!-- BEGIN_TF_DOCS -->
 # POLICY INITIATIVE ASSIGNMENT MODULE
 
-Assignments can be scoped from overarching management groups right down to individual resources
+Assignments can be scoped from overarching management groups right down to individual resources by settings the `assignment_scope`.
 
-> 💡 **Note:**  A role assignment and remediation task will be automatically created if any member definitions contain a list of `roleDefinitionIds`. This can be omitted with `skip_role_assignment = true`, or to assign roles at a different scope to that of the policy assignment use: `role_assignment_scope`. To successfully create Role-assignments (or group memberships) the deployment account may require the [User Access Administrator](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#user-access-administrator) role at the `assignment_scope` or preferably the `definition_scope` to simplify workflows.
+## Role Definitions & Assignments
+
+A role assignment and remediation task will be automatically created if any member definition contains a list of `roleDefinitionIds`. This can be omitted with `skip_role_assignment=true`, or to assign roles at a different scope to that of the policy assignment use: `role_assignment_scope`.
+
+For a cleaner solution, a list of `aad_group_remediation_object_ids` can be supplied for System Assigned Identity membership in favour of role assignments, assuming the appropriate RBAC controls already exist for that group. More info on role assignments can be found in the [main README](../../README.md#role-assignments)
+
+## Assignment Effects
+
+The `assignment_effect` parameter is useful when an initiative contains multiple effects of the same type and `merge_effects=true`, ensuring that all `member_definitions` are assigned with the same effect.
+
+- Omit `assignment_effect` to use each definition's default effect stored in its policy parameters.
+- Specify effects individually by setting them in `assignment_parameters` for more granular control.
 
 ## Examples
 
@@ -111,7 +122,7 @@ module org_mg_configure_az_monitor_linux_vm_initiative {
 | Name | Version |
 |------|---------|
 | terraform | >= 1.4 |
-| azurerm | >=3.49.0 |
+| azurerm | >= 4.12 |
 
 
 
@@ -119,35 +130,38 @@ module org_mg_configure_az_monitor_linux_vm_initiative {
 
 | Name | Type |
 |------|------|
+| [azuread_group_member.remediation](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/group_member) | resource |
 | [azurerm_management_group_policy_assignment.set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_group_policy_assignment) | resource |
 | [azurerm_management_group_policy_remediation.rem](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_group_policy_remediation) | resource |
 | [azurerm_resource_group_policy_assignment.set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_policy_assignment) | resource |
 | [azurerm_resource_group_policy_remediation.rem](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_policy_remediation) | resource |
 | [azurerm_resource_policy_assignment.set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_policy_assignment) | resource |
 | [azurerm_resource_policy_remediation.rem](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_policy_remediation) | resource |
-| [azurerm_role_assignment.rem_role](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.remediation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_subscription_policy_assignment.set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subscription_policy_assignment) | resource |
 | [azurerm_subscription_policy_remediation.rem](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subscription_policy_remediation) | resource |
+| [terraform_data.remediation](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [terraform_data.set_assign_replace](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| aad_group_remediation_object_ids | List of Azure AD Group Object Ids for the System Assigned Identity to be a member of. Omit this to use role_assignments | `list(string)` | `[]` | no |
 | assignment_description | A description to use for the Policy Assignment, defaults to initiative description. Changing this forces a new resource to be created | `string` | `null` | no |
 | assignment_display_name | The policy assignment display name, defaults to initiative display_name. Changing this forces a new resource to be created | `string` | `null` | no |
-| assignment_effect | The effect of the policy. Changing this forces a new resource to be created | `string` | `null` | no |
+| assignment_effect | The effect of the set assignment. Useful when the initiative has multiple effects of the same type and 'merge_effects=true'. Omit this to use each definitions default effect or populate individually at 'assignment_parameters' | `string` | `null` | no |
 | assignment_enforcement_mode | Control whether the assignment is enforced | `bool` | `true` | no |
 | assignment_location | The Azure location where this policy assignment should exist, required when an Identity is assigned. Defaults to West Europe. Changing this forces a new resource to be created | `string` | `"westeurope"` | no |
 | assignment_metadata | The optional metadata for the policy assignment. | `any` | `null` | no |
 | assignment_name | The name which should be used for this Policy Assignment, defaults to initiative name. Changing this forces a new Policy Assignment to be created | `string` | `null` | no |
-| assignment_not_scopes | A list of the Policy Assignment's excluded scopes. Must be full resource IDs | `list(any)` | `[]` | no |
+| assignment_not_scopes | A list of the Policy Assignment's excluded scopes. Must be full resource IDs | `list(string)` | `[]` | no |
 | assignment_parameters | The policy assignment parameters. Changing this forces a new resource to be created | `any` | `null` | no |
 | assignment_scope | The scope at which the policy initiative will be assigned. Must be full resource IDs. Changing this forces a new resource to be created | `string` | n/a | yes |
 | failure_percentage | (Optional) A number between 0.0 to 1.0 representing the percentage failure threshold. The remediation will fail if the percentage of failed remediation operations (i.e. failed deployments) exceeds this threshold. | `number` | `null` | no |
-| identity_ids | Optional list of User Managed Identity IDs which should be assigned to the Policy Initiative | `list(any)` | `null` | no |
+| identity_ids | Optional list of User Managed Identity IDs which should be assigned to the Policy Initiative | `list(string)` | `null` | no |
 | initiative | Policy Initiative resource node | `any` | n/a | yes |
-| location_filters | Optional list of the resource locations that will be remediated | `list(any)` | `[]` | no |
+| location_filters | Optional list of the resource locations that will be remediated | `list(string)` | `[]` | no |
 | non_compliance_messages | The optional non-compliance message(s). Key/Value pairs map as policy_definition_reference_id = 'content', use null = 'content' to specify the Default non-compliance message for all member definitions. | `any` | `{}` | no |
 | overrides | Optional list of assignment Overrides (preview), max 10. Allows you to change the effect of a policy definition without modifying the underlying policy definition or using a parameterized effect in the policy definition | `list(any)` | `[]` | no |
 | parallel_deployments | (Optional) Determines how many resources to remediate at any given time. Can be used to increase or reduce the pace of the remediation. If not provided, the default parallel deployments value is used. | `number` | `null` | no |

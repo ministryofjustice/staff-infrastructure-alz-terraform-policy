@@ -9,13 +9,4 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-  - package-ecosystem: "terraform"
-    directory: "tests/EHDiagnostic"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-    open-pull-requests-limit: 5
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
   
