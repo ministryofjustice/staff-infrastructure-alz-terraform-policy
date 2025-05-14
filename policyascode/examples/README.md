@@ -10,7 +10,8 @@ This examples folder demonstrates an effective deployment of Azure Policy Defini
 | Name | Version |
 |------|---------|
 | terraform | >= 1.4 |
-| azurerm | >=3.49.0 |
+| azuread | >= 2.45 |
+| azurerm | >= 4.12 |
 
 ## Modules
 
@@ -45,6 +46,7 @@ This examples folder demonstrates an effective deployment of Azure Policy Defini
 
 | Name | Type |
 |------|------|
+| [azuread_group.rem](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/group) | data source |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_management_group.org](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/management_group) | data source |
 | [azurerm_management_group.team_a](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/management_group) | data source |
